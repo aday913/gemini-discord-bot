@@ -1,24 +1,28 @@
+import logging
+
 import discord
-import os
-import yaml
-from google.cloud import aiplatform 
+import google.generativeai as genai
+from yaml import Loader, load
 
-# Load configuration
-with open('config.yaml') as f:
-    config = yaml.safe_load(f)
-
-# Gemini setup
-endpoint_name = "YOUR_GEMINI_ENDPOINT_NAME" # If needed
-aiplatform.init(project="YOUR_GOOGLE_PROJECT_ID", location="YOUR_REGION", endpoint=endpoint_name)
-
-# Discord client 
-intents = discord.Intents.default() 
-intents.message_content = True 
+# Discord client
+intents = discord.Intents.default()
+intents.message_content = True
 client = discord.Client(intents=intents)
+
+log = logging.getLogger(__name__)
+
+
+def get_gemini(api_key):
+    # log.info('Attempting to connect to gemini api')
+    return genai.configure(api_key=api_key)
+
 
 @client.event
 async def on_ready():
-    print(f'Logged in as {client.user}')
+    gemini = get_gemini("")
+    print(f"Logged in as {client.user}")
+    print(f"Gemini object: {gemini}")
+
 
 @client.event
 async def on_message(message):
@@ -27,15 +31,21 @@ async def on_message(message):
 
     # Mention-based interaction
     if client.user.mentioned_in(message):
-        user_query = message.content.split(f"<@{client.user.id}> ")[1] 
+        user_query = message.content.split(f"<@{client.user.id}> ")[1]
         response = await call_gemini(user_query)
         await message.channel.send(response)  # Handle image responses if needed
 
     # ... (Thread-based interaction code - more complex!) ...
 
+
 async def call_gemini(prompt):
     # ... (Implement your Gemini API request logic here) ...
-    return gemini_response 
+    return gemini_response
 
-client.run(config['discord_bot_token'])
 
+if __name__ == "__main__":
+    log = logging.basicConfig(level=logging.DEBUG)
+
+    with open("config.yaml", "r") as yml:
+        config = load(yml, Loader=Loader)
+    client.run(config["discord_bot_token"])
