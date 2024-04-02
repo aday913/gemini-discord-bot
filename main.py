@@ -4,12 +4,12 @@ import discord
 import google.generativeai as genai
 from yaml import Loader, load
 
+log = logging.getLogger(__name__)
+
 # Discord client
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
-
-log = logging.getLogger(__name__)
 
 
 def get_gemini(api_key):
@@ -20,6 +20,9 @@ def get_gemini(api_key):
 @client.event
 async def on_ready():
     gemini = get_gemini("")
+    for m in genai.list_models():
+        if "generateContent" in m.supported_generation_methods:
+            print(m.name)
     print(f"Logged in as {client.user}")
     print(f"Gemini object: {gemini}")
 
