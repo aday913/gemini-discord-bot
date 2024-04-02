@@ -12,19 +12,20 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 
 
+# Gemini client
 def get_gemini(api_key):
-    # log.info('Attempting to connect to gemini api')
     return genai.configure(api_key=api_key)
+
+
+with open("config.yaml", "r") as yml:
+    config = load(yml, Loader=Loader)
+gemini = get_gemini(config["gemini_api_key"])
+model = genai.GenerativeModel('gemini-pro')
 
 
 @client.event
 async def on_ready():
-    gemini = get_gemini("")
-    for m in genai.list_models():
-        if "generateContent" in m.supported_generation_methods:
-            print(m.name)
     print(f"Logged in as {client.user}")
-    print(f"Gemini object: {gemini}")
 
 
 @client.event
@@ -42,8 +43,8 @@ async def on_message(message):
 
 
 async def call_gemini(prompt):
-    # ... (Implement your Gemini API request logic here) ...
-    return gemini_response
+    response = model.generate_content(prompt)
+    return response.text
 
 
 if __name__ == "__main__":
