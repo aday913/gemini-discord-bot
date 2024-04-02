@@ -20,12 +20,12 @@ def get_gemini(api_key):
 with open("config.yaml", "r") as yml:
     config = load(yml, Loader=Loader)
 gemini = get_gemini(config["gemini_api_key"])
-model = genai.GenerativeModel('gemini-pro')
+model = genai.GenerativeModel("gemini-pro")
 
 
 @client.event
 async def on_ready():
-    print(f"Logged in as {client.user}")
+    log.info(f"Logged in as {client.user}")
 
 
 @client.event
@@ -36,19 +36,27 @@ async def on_message(message):
     # Mention-based interaction
     if client.user.mentioned_in(message):
         user_query = message.content.split(f"<@{client.user.id}> ")[1]
+        log.info(
+            f"Gemini bot mentioned, got prompt from user {message.author}:\n {user_query}"
+        )
         response = await call_gemini(user_query)
-        await message.channel.send(response)  # Handle image responses if needed
-
-    # ... (Thread-based interaction code - more complex!) ...
-
+        await message.channel.send(response)
 
 async def call_gemini(prompt):
     response = model.generate_content(prompt)
+    log.info(f"Got the following candidates from Gemini:\n {response.candidates}")
     return response.text
+
+@client.event
+async def on_thread_create(thread):
+    log.info(f'Thread {thread.name} created at {thread.created_at}')
+    await thread.join()
 
 
 if __name__ == "__main__":
-    log = logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
+
+    log = logging.getLogger(__name__)
 
     with open("config.yaml", "r") as yml:
         config = load(yml, Loader=Loader)
