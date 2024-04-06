@@ -35,7 +35,8 @@ async def on_message(message):
 
     # Mention-based interaction
     if client.user.mentioned_in(message):
-        user_query = message.content.split(f"<@{client.user.id}> ")[1]
+        user_query = message.content.split(f"<@{client.user.id}> ")[1] 
+        user_query = user_query + '. Limit your response to less than 1900 characters.'
         log.info(
             f"Gemini bot mentioned, got prompt from user {message.author}:\n {user_query}"
         )
