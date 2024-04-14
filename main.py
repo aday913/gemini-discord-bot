@@ -40,7 +40,7 @@ async def on_message(message):
             user_query
             + ". Format your response to be in markdown. \
             If your resposne is longer than 1900 characters, \
-            please separate each ~1600 character blocks with a newline character"
+            please separate each ~1200 character blocks with a newline character"
         )
         log.info(
             f"Gemini bot mentioned, got prompt from user {message.author}:\n {user_query}"
