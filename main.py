@@ -55,6 +55,9 @@ async def on_message(message):
             if len(temp_message) > 1500:
                 await message.channel.send(temp_message)
                 temp_message = ""
+        if temp_message != "":
+            await message.channel.send(temp_message)
+        return
 
 
 async def call_gemini(prompt):
