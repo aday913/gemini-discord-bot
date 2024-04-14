@@ -48,13 +48,13 @@ async def on_message(message):
             await message.channel.send(response)
             return
 
-        message = ""
+        temp_message = ""
         split_response = response.split("\n")
         for i in range(len(split_response)):
-            message = message + split_response[i]
-            if len(message) > 1500:
-                await message.channel.send(message)
-                message = ""
+            temp_message = temp_message + split_response[i]
+            if len(temp_message) > 1500:
+                await message.channel.send(temp_message)
+                temp_message = ""
 
 
 async def call_gemini(prompt):
