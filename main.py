@@ -53,7 +53,7 @@ async def on_message(message):
         temp_message = ""
         split_response = response.split("\n")
         for i in range(len(split_response)):
-            temp_message = temp_message + split_response[i]
+            temp_message = temp_message + f'{split_response[i]}\n'
             if len(temp_message) > 1500:
                 await message.channel.send(temp_message)
                 temp_message = ""
