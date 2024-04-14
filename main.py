@@ -35,22 +35,37 @@ async def on_message(message):
 
     # Mention-based interaction
     if client.user.mentioned_in(message):
-        user_query = message.content.split(f"<@{client.user.id}> ")[1] 
-        user_query = user_query + '. Limit your response to less than 1900 characters.'
+        user_query = message.content.split(f"<@{client.user.id}> ")[1]
+        user_query = (
+            user_query
+            + ". If your resposne is plain text, please separate each ~1600 character block with a newline character"
+        )
         log.info(
             f"Gemini bot mentioned, got prompt from user {message.author}:\n {user_query}"
         )
         response = await call_gemini(user_query)
-        await message.channel.send(response)
+        if len(response) < 1900:
+            await message.channel.send(response)
+            return
+
+        message = ""
+        split_response = response.split("\n")
+        for i in range(len(split_response)):
+            message = message + split_response[i]
+            if len(message) > 1500:
+                await message.channel.send(message)
+                message = ""
+
 
 async def call_gemini(prompt):
     response = model.generate_content(prompt)
     log.info(f"Got the following candidates from Gemini:\n {response.candidates}")
     return response.text
 
+
 @client.event
 async def on_thread_create(thread):
-    log.info(f'Thread {thread.name} created at {thread.created_at}')
+    log.info(f"Thread {thread.name} created at {thread.created_at}")
     await thread.join()
 
 
