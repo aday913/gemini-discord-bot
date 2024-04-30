@@ -27,17 +27,23 @@ thread_conversation_history = {}
 
 @client.event
 async def on_ready():
+    """Called when the bot is ready and able to be used"""
     log.info(f"Logged in as {client.user}")
 
 
 @client.event
 async def on_thread_create(thread):
+    """Log thread creation and add thread ID to history"""
     log.info(f"Thread {thread.name} with id {thread.id} created at {thread.created_at}")
     thread_conversation_history[thread.id] = []
 
 
 @client.event
 async def on_message(message: discord.Message):
+    """Handle all messages in the server, only responding to ones where the bot is mentioned.
+
+    The bot can either be mentioned in a general text channel (but does not remember chat
+    history) or in a public/private thread (which retains chat history for context)"""
     if message.author == client.user:  # Prevent bot responding to itself
         return
 
@@ -76,7 +82,9 @@ async def on_message(message: discord.Message):
         return
 
 
-def format_user_query(message):
+def format_user_query(message: discord.Message) -> str:
+    """Given a message from a user for gemini, format it to ask gemini to format
+    in markdown and separate response into smaller chunks"""
     user_query = message.content.split(f"<@{client.user.id}> ")[1]
     user_query = (
         user_query
@@ -90,7 +98,9 @@ def format_user_query(message):
     return user_query
 
 
-async def handle_thread_message(message, user_query: str):
+async def handle_thread_message(message: discord.Message, user_query: str) -> list:
+    """If a message comes from a thread, the method grabs all of the previous messages sent to use
+    as context in the gemini query"""
     thread_id = message.channel.id
     if thread_id not in list(thread_conversation_history.keys()):
         log.info(f"Thread ID {thread_id} not found in history, adding")
@@ -100,7 +110,9 @@ async def handle_thread_message(message, user_query: str):
     return thread_conversation_history[thread_id]
 
 
-async def send_large_message(gemini_response, message):
+async def send_large_message(gemini_response: str, message: discord.Message):
+    """Method splits a gemini response into ~1500 character chunks due to discord's
+    message length limit. Each chunk is sent as a message separately"""
     temp_message = ""
     split_response = gemini_response.split("\n")
     for i in range(len(split_response)):
@@ -113,7 +125,10 @@ async def send_large_message(gemini_response, message):
     return
 
 
-async def call_gemini(prompt, thread_id):
+async def call_gemini(prompt: str | list, thread_id: int | None) -> str:
+    """Given a prompt (either a direct prompt string or a list of chat history including the
+    new message), the method will send the prompt to gemini and return the response text
+    """
     log.info(f"Using the following prompt when calling gemini api: {prompt}")
     response = model.generate_content(prompt)
     log.info(f"Got the following candidates from Gemini:\n {response.candidates}")
